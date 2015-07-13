@@ -1,0 +1,175 @@
+﻿@model KnockoutJS_AspNET_WebAPI.Models.Product
+
+@{
+    ViewBag.Title = "Create";
+}
+
+<html>
+<head>
+    <title>Crud com KnockoutJs em Asp.NET WebAPI</title>
+
+    <script src="~/Scripts/jquery-1.8.2.js"></script>
+    <script src="~/Scripts/knockout-2.2.0.js"></script>
+    <link href="~/Content/Site.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+    <h2>Create</h2>
+<form>
+    <table>
+        <tr>
+            <td>
+                <table id="tbdml">
+                    <tr>
+                        <td>Id</td>
+                        <td><input type="text" id="txtId" data-bind="value: $root.Id" disabled="disabled"/></td>
+                    </tr>
+                    <tr>
+                        <td>Name</td>
+                        <td><input type="text" id="txtName" data-bind="value: $root.Name"/></td>
+                    </tr>
+                    <tr>
+                        <td>Price</td>
+                        <td><input type="text" id="txtPrice" data-bind="value: $root.Price"/></td>
+                    </tr>
+                    <tr>
+                        <td>Description</td>
+                        <td><input type="text" id="txtDescription" data-bind="value: $root.Description"/></td>
+                    </tr>
+                    <tr>
+                        <td><button data-bind="click: $root.save">Save</button></td>
+                        <td><button data-bind="click: $root.update">Update</button></td>
+                    </tr>
+                </table>
+            </td>
+
+            <!--Essa tabela só irá aparecer uma vez que conter algum registro de produtos-->
+            <td>
+                <div class="FixedContainer">
+                    <table data-bind="visible: Products().length > 0" style="border: double">
+                        <thead>
+                        <tr>
+                            <td>Id</td>
+                            <td>Name</td>
+                            <td>Price</td>
+                            <td>Description</td>
+                            <td></td>
+                        </tr>
+                        </thead>
+                        <!--Em essa parte do código preencherá todos os produtos cadastrados-->
+                        <tbody data-bind="foreach: Products">
+                        <tr style="border: solid" data-bind="click: $root.getSelectedProduct" id="updtr">
+                            <td><span data-bind="text: Id"></span></td>
+                            <td><span data-bind="text: Name"></span></td>
+                            <td><span data-bind="text: Price"></span></td>
+                            <td><span data-bind="text: Description"></span></td>
+                            <td><button data-bind="click: $root.deleteRec">Delete</button></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </td>
+        </tr>
+    </table>
+</form>
+
+    <script type="text/javascript">
+    var ProductViewModel = function () {
+
+        var self = this;
+
+        self.Id = ko.observable("0");
+        self.Name = ko.observable("");
+        self.Price = ko.observable("");
+        self.Description = ko.observable("");
+
+        var ProductData = {
+            Id: self.Id,
+            Name: self.Name,
+            Price: self.Price,
+            Description: self.Description,
+        };
+
+        self.Products = ko.observableArray([]);
+
+        GetProducts();
+
+        self.save = function () {
+
+            $.ajax({
+                type: "POST",
+                url: "http://localhost:17268//api/Default1/",
+                data: ko.toJSON(ProductData),
+                contentType: "application/json",
+                success: function (data) {
+                    alert("Added Success");
+                    self.Id(data.Id);
+                    alert("The New Product Id :" + self.Id());
+                    GetProducts();
+                },
+                error: function (error) {
+                    alert(error.responseText);
+                }
+            });
+
+        };
+        self.update = function () {
+            var url = "http://localhost:17268//api/Default1/" + self.Id();
+            alert(url);
+            $.ajax({
+                type: "PUT",
+                url: url,
+                data: ko.toJSON(ProductData),
+                contentType: "application/json",
+                success: function (data) {
+                    alert("Updated Success");
+                    GetProducts();
+                },
+                error: function (error) {
+                    alert("Error");
+                }
+            });
+        };
+
+        self.deleteRec = function (product) {
+            $.ajax({
+                type: "DELETE",
+                url: "http://localhost:17268//api/Default1/" + product.Id,
+                success: function (data) {
+                    alert("Deleted Success");
+                    GetProducts();
+                },
+                error: function (error) {
+                    alert("Error");
+                }
+            });
+        };
+        function GetProducts() {
+            $.ajax({
+                type: "GET",
+                url: "http://localhost:17268///api/Default1/",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (data) {
+                    self.Products(data);
+                },
+                error: function (error) {
+                    alert(error.responseText);
+                }
+            });
+
+        }
+
+        self.getSelectedProduct = function (product) {
+            self.Id(product.Id),
+            self.Name(product.Name),
+            self.Price(product.Price),
+            self.Description(product.Description)
+        };
+    };
+    ko.applyBindings(new ProductViewModel());
+    </script>
+
+
+</body>
+
+</html>
